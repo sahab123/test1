@@ -1,36 +1,46 @@
-# This is a basic workflow to help you get started with Actions
+name: Hacker-Vps
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+    push:
+    workflow_dispatch:
+    
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+       - name: checkout Hacker-Vps
+         uses: actions/checkout@main
+       
+       - uses: styfle/cancel-workflow-action@0.9.0
+         name: "cancel duplicate workflow runs"
+         with:
+            all_but_latest: true
+            access_token: ${{ github.token }}
+       - name: initialization Hacker-Vps
+         continue-on-error: true
+         run: |
+           git config --global user.name ${{ secrets.GHUSER }}
+           git config --global user.email ${{ secrets.GHMAIL }}
+           git config --global credential.helper store
+           echo "https://${{ secrets.GHUSER }}:${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
+       - name: Cloning Repository
+         continue-on-error: true
+         run: |
+           git clone https://${{ secrets.GH_TOKEN }}@github.com/${{ secrets.GHUSER }}/${{ secrets.REPO }} hacker
+       - name: running Hacker-Vps
+         timeout-minutes: 350
+         continue-on-error: true
+         run: |
+           cd hacker
+           docker build . -t hacker
+           docker run hacker
+       - name: loop Hacker-Vps
+         continue-on-error: true
+         run: |
+              git clone https://github.com/${GITHUB_REPOSITORY} loop
+              cd loop || exit 1
+              echo $(date -u +%T%P) >> loop.txt
+              git add loop.txt
+              git commit -m "Hacker-Vps : Loop $(date -u +%D-%T%P)"
+              git push -q https://${{ secrets.GH_TOKEN }}@github.com/${GITHUB_REPOSITORY} HEAD:hacker-vps
